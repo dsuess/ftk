@@ -1,0 +1,9 @@
+preprocess-tinyshakespeare:
+  cmd: poetry run python tools/preprocess.py split-words data/raw/tinyshakespeare.txt
+    data/words/tinyshakespeare.txt
+  deps:
+  - path: data/raw/tinyshakespeare.txt
+    md5: 6fb458f1232090904fb40fe944165e91
+  outs:
+  - path: data/words/tinyshakespeare.txt
+    md5: a07d44c6ea5376534568847e9548d3b7

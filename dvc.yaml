@@ -1,0 +1,8 @@
+stages:
+  preprocess-tinyshakespeare:
+    cmd: poetry run python tools/preprocess.py split-words data/raw/tinyshakespeare.txt
+      data/words/tinyshakespeare.txt
+    deps:
+    - data/raw/tinyshakespeare.txt
+    outs:
+    - data/words/tinyshakespeare.txt
