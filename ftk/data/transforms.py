@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 from typing import Callable, Any
 from torch.nn.utils import rnn as rnn_utils
@@ -84,3 +85,54 @@ def sequence_one_hot(seq: PackedSequence, size: int) -> PackedSequence:
     return PackedSequence(
         data, seq.batch_sizes, seq.sorted_indices, seq.unsorted_indices,
     )
+
+
+class KeyboardNoise:
+    layout = ["qwertyuiop", "asdfghjkl", "zxcvbnm"]
+
+    def __init__(self, characters: str, error_rate=0.2):
+        eye = torch.eye(len(characters), dtype=torch.float32)
+        error_mat = self.build_transition_matrix(characters, self.layout)
+        self.transition_matrix = (1 - error_rate) * eye + error_rate * error_mat
+
+    @staticmethod
+    def build_transition_matrix(characters, layout):
+        max_len = max(len(s) for s in layout)
+        padded = np.array(
+            [[""] + list(s) + [""] * (max_len - len(s) + 1) for s in layout]
+        )
+        pads = np.array([""] * (max_len + 2))[None]
+        padded = np.concatenate([pads, padded, pads], axis=0)
+
+        transition_matrix = np.zeros((len(characters),) * 2, dtype=np.float32)
+
+        directions = np.array([(-1, 0), (1, 0), (0, -1), (0, 1)])
+
+        for idx, char in enumerate(characters):
+            (loc,) = np.argwhere(padded == char)
+            for d in directions:
+                neighboar_char = padded[tuple(loc + d)]
+                if neighboar_char:
+                    idx_ = characters.index(neighboar_char)
+                    transition_matrix[idx, idx_] += 1
+
+        transition_matrix /= np.sum(transition_matrix, axis=1, keepdims=True)
+        return torch.tensor(transition_matrix)
+
+    def __call__(self, word):
+        """
+        >>> transform = KeyboardNoise('abcdefghijklmnopqrstuvwxyz', error_rate=1.0)
+        >>> word = torch.tensor([11, 12, 13, 14])
+        >>> all(transform(word) != word)
+        True
+
+        >>> transform = KeyboardNoise('abcdefghijklmnopqrstuvwxyz', error_rate=0.0)
+        >>> word = torch.tensor([11, 12, 13, 14])
+        >>> all(transform(word) == word)
+        True
+
+        """
+        probabilities = self.transition_matrix[word]
+        noisy = torch.multinomial(probabilities, num_samples=1)
+        return noisy.squeeze(dim=1)
+

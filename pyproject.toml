@@ -6,14 +6,15 @@ authors = ["Daniel Suess <daniel@dsuess.me>"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-pysyft = "^0.0.1"
-numpy = "^1.19.1"
-spacy = "^2.3.2"
-dvc = "^1.2.0"
+syft = "*"
+numpy = "*"
+spacy = "*"
+dvc = "^1.6.0"
 click = "^7.1.2"
-torch = "^1.5.1"
-pytorch-lightning = "^0.8.5"
-matplotlib = "^3.3.0"
+torch = "*"
+pytorch-lightning = "*"
+matplotlib = "*"
+shaloop = "0.2.1a11"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.4.3"
